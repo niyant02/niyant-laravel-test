@@ -20,7 +20,8 @@ class DashboardController extends Controller
 
     public function create(Request $request)
     {
-        $request->user()->createToken($request->token_name);
+        $token = $request->user()->createToken($request->token_name)->plainTextToken;
+        session()->push('createdToken', $token);
         return redirect()->to('/dashboard');
     }
 

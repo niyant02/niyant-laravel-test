@@ -9,7 +9,7 @@
         <div class="w-1/3 sm:px-6 lg:pl-24">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
-                    <nav class="">
+                    <nav>
                         <ul>
                             <li class="mb-3 lg:mb-1 pb-1.5 border-b-2">
                                 <a class="px-2 -mx-2 py-1 transition duration-200 ease-in-out relative block hover:translate-x-2px hover:text-gray-900 text-gray-600 font-medium
@@ -32,6 +32,9 @@
         <div class="w-2/3 sm:px-6 lg:pr-24">
             @if (\Request::route()->getName() === "dashboard")
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                @if (session()->has('createdToken'))
+                    <p class="w-full p-6 bg-white border-b border-gray-200"><span class="font-bold">API Token: </span> {!! session()->get('createdToken')[0] !!}</p>
+                @endif
                 <form class="p-6 bg-white border-b border-gray-200" method="post" action="{{ route('token.create') }}">
                     @method('post')
                     @csrf
@@ -84,12 +87,12 @@
                 </div>
             </div>
             @elseif(\Request::route()->getName() === "dashboard.image")
-            @if ($user->images->count() > 0)
+            @if ($user->images)
             <div class="grid grid-flow-col grid-cols-3 grid-rows-3 gap-4">
                 @foreach ($user->images as $image)
                 <div class="px-4">
-                    <img src="https://www.creative-tim.com/learning-lab/tailwind-starter-kit/img/team-1-800x800.jpg"
-                        alt="..." class="shadow rounded max-w-full h-auto align-middle border-none" />
+                    <img src="{!! \Storage::disk('public')->url($image->image_path) !!}"
+                        alt="{{ $image->image_name }}" class="shadow rounded max-w-full h-auto align-middle border-none" />
                 </div>
                 @endforeach
             </div>

@@ -4,82 +4,48 @@ namespace App\Http\Controllers;
 
 use App\Models\UserImage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class UserImageController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public function upload(Request $request)
     {
-        //
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|mimes:jpeg,jpg,png',
+        ]);
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors()
+            ]);
+        }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\UserImage  $userImage
-     * @return \Illuminate\Http\Response
-     */
-    public function show(UserImage $userImage)
-    {
-        //
-    }
+        $userId = auth()->user()->id;
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\UserImage  $userImage
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(UserImage $userImage)
-    {
-        //
-    }
+        $imagePath =  $userId;
+        if (!Storage::disk('public')->exists($imagePath)) {
+            $file = Storage::disk('public')->makeDirectory($imagePath, 0755, true);
+        }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\UserImage  $userImage
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, UserImage $userImage)
-    {
-        //
-    }
+        $imagePath =  $userId . "/images";
+        if (!Storage::disk('public')->exists($imagePath)) {
+            $file = Storage::makeDirectory($imagePath, 0755, true);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\UserImage  $userImage
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(UserImage $userImage)
-    {
-        //
+        $image = $request->file('file');
+
+        $imageData = [
+            'user_id' => $userId,
+            'image_name' => $image->getClientOriginalName(),
+        ];
+
+        $fileName = Storage::disk('public')->put($imagePath, $image);
+        $imageData['image_path'] = $fileName;
+        $userImage = UserImage::create($imageData);
+        return response()->json([
+            'image_url' => Storage::disk('public')->url($fileName)
+        ]);
     }
 }
